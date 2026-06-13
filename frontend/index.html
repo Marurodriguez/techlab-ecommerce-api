@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechLab — Panel de Inventario</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="header">
+    <div class="header__brand">
+      <span class="header__mark">TL</span>
+      <div class="header__title">
+        <h1>TechLab</h1>
+        <p>Panel de inventario &amp; pedidos</p>
+      </div>
+    </div>
+    <div class="header__status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Verificando conexión…</span>
+    </div>
+  </header>
+
+  <!-- ===================== TOAST / NOTICE ===================== -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <main class="layout">
+
+    <!-- ===================== NAV TABS ===================== -->
+    <nav class="tabs" role="tablist" aria-label="Secciones del panel">
+      <button class="tab is-active" data-tab="productos" role="tab" aria-selected="true">
+        <span class="tab__index">01</span> Productos
+      </button>
+      <button class="tab" data-tab="pedido" role="tab" aria-selected="false">
+        <span class="tab__index">02</span> Nuevo pedido
+      </button>
+      <button class="tab" data-tab="historial" role="tab" aria-selected="false">
+        <span class="tab__index">03</span> Historial
+      </button>
+    </nav>
+
+    <!-- ===================== SECCIÓN: PRODUCTOS ===================== -->
+    <section class="panel is-active" id="panel-productos" role="tabpanel">
+      <div class="panel__head">
+        <div>
+          <h2>Catálogo de productos</h2>
+          <p class="panel__sub">Lo que hay disponible en el depósito, en tiempo real.</p>
+        </div>
+        <button class="btn btn--ghost" id="refreshProductos">Actualizar lista</button>
+      </div>
+
+      <!-- Formulario alta de producto -->
+      <details class="card card--form">
+        <summary>Agregar producto nuevo</summary>
+        <form id="formProducto" class="form-grid">
+          <label class="field">
+            <span>Nombre</span>
+            <input type="text" name="nombre" required placeholder="Ej: Mouse Logitech M170">
+          </label>
+          <label class="field">
+            <span>Categoría (ID)</span>
+            <input type="number" name="categoriaId" required placeholder="1" min="1">
+          </label>
+          <label class="field field--wide">
+            <span>Descripción</span>
+            <input type="text" name="descripcion" placeholder="Mouse inalámbrico, 3 botones">
+          </label>
+          <label class="field">
+            <span>Precio</span>
+            <input type="number" name="precio" required placeholder="15000" min="0" step="0.01">
+          </label>
+          <label class="field">
+            <span>Stock</span>
+            <input type="number" name="stock" required placeholder="20" min="0">
+          </label>
+          <label class="field field--wide">
+            <span>URL de imagen</span>
+            <input type="url" name="imagenUrl" placeholder="https://...">
+          </label>
+          <div class="field field--actions">
+            <button type="submit" class="btn btn--primary">Guardar producto</button>
+          </div>
+        </form>
+      </details>
+
+      <!-- Tabla de productos -->
+      <div class="table-wrap">
+        <table class="table" id="tablaProductos">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th class="num">Precio</th>
+              <th class="num">Stock</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="6" class="empty">Cargando productos…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================== SECCIÓN: NUEVO PEDIDO ===================== -->
+    <section class="panel" id="panel-pedido" role="tabpanel">
+      <div class="panel__head">
+        <div>
+          <h2>Crear pedido</h2>
+          <p class="panel__sub">Elegí un usuario, agregá líneas de producto y confirmá.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <label class="field">
+          <span>ID de usuario</span>
+          <input type="number" id="pedidoUsuarioId" min="1" placeholder="1" required>
+        </label>
+
+        <div class="lineas" id="lineasPedido">
+          <!-- Líneas dinámicas -->
+        </div>
+
+        <div class="lineas__actions">
+          <button class="btn btn--ghost" id="agregarLinea" type="button">+ Agregar línea</button>
+          <div class="total" id="totalEstimado">Total estimado: $0.00</div>
+        </div>
+
+        <button class="btn btn--primary btn--block" id="confirmarPedido" type="button">
+          Confirmar pedido
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================== SECCIÓN: HISTORIAL ===================== -->
+    <section class="panel" id="panel-historial" role="tabpanel">
+      <div class="panel__head">
+        <div>
+          <h2>Historial de pedidos</h2>
+          <p class="panel__sub">Consultá los pedidos realizados por un usuario.</p>
+        </div>
+      </div>
+
+      <div class="card card--inline">
+        <label class="field">
+          <span>ID de usuario</span>
+          <input type="number" id="historialUsuarioId" min="1" placeholder="1">
+        </label>
+        <button class="btn btn--primary" id="buscarHistorial">Buscar pedidos</button>
+      </div>
+
+      <div id="historialResultados" class="historial"></div>
+    </section>
+
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer">
+    <div class="footer__line"></div>
+    <p>
+      Proyecto final — Backend Java (Spring Boot + MySQL) &amp; panel de consumo de API.
+      <br>
+      Desarrollado por <strong>Marisol Rodríguez</strong>.
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
